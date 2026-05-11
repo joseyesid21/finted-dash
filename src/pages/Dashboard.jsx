@@ -207,7 +207,7 @@ export default function Dashboard({ session }) {
 
     // Global calcs
     const totalCapital = portfolios.reduce((sum, p) => {
-        const isCop = p.id === 2;
+        const isCop = p.name === 'Préstamos';
         const netTrans = (p.transactions || []).reduce((s, t) => {
             const amt = parseFloat(t.amount) || 0;
             const com = parseFloat(t.commission) || 0;
@@ -219,7 +219,7 @@ export default function Dashboard({ session }) {
     }, 0);
 
     const allocationData = portfolios.map(p => {
-        const isCop = p.id === 2;
+        const isCop = p.name === 'Préstamos';
         const netTrans = (p.transactions || []).reduce((s, t) => {
             const amt = parseFloat(t.amount) || 0;
             const com = parseFloat(t.commission) || 0;
@@ -291,7 +291,7 @@ export default function Dashboard({ session }) {
     }, []);
 
     // --- Derived Calculations for Selected Portfolio ---
-    const isCopPortfolio = selectedPortfolioId === 2;
+    const isCopPortfolio = selectedPortfolio?.name === 'Préstamos';
     const netTransactions = selectedPortfolio ? (selectedPortfolio.transactions || []).reduce((s, t) => {
         const amt = parseFloat(t.amount) || 0;
         const com = parseFloat(t.commission) || 0;
@@ -661,7 +661,7 @@ export default function Dashboard({ session }) {
 
     const handleSaveAsset = (e) => {
         e.preventDefault();
-        if (selectedPortfolioId === 2) {
+        if (selectedPortfolio?.name === 'Préstamos') {
             if (!newAsset.ticker || !newAsset.buyPrice || !newAsset.name || !newAsset.date) {
                 alert('Por favor completa todos los campos obligatorios (*)');
                 return;
@@ -672,11 +672,11 @@ export default function Dashboard({ session }) {
 
         const assetRecord = {
             id: editingAssetId || Date.now(),
-            ticker: selectedPortfolioId === 2 ? newAsset.ticker : newAsset.ticker.toUpperCase(),
-            name: newAsset.name || (selectedPortfolioId === 2 ? newAsset.ticker : newAsset.ticker.toUpperCase()),
-            quantity: selectedPortfolioId === 2 ? 1 : parseFloat(newAsset.quantity),
+            ticker: selectedPortfolio?.name === 'Préstamos' ? newAsset.ticker : newAsset.ticker.toUpperCase(),
+            name: newAsset.name || (selectedPortfolio?.name === 'Préstamos' ? newAsset.ticker : newAsset.ticker.toUpperCase()),
+            quantity: selectedPortfolio?.name === 'Préstamos' ? 1 : parseFloat(newAsset.quantity),
             buyPrice: parseFloat(newAsset.buyPrice),
-            totalValue: selectedPortfolioId === 2 ? parseFloat(newAsset.buyPrice) : parseFloat(newAsset.quantity) * parseFloat(newAsset.buyPrice),
+            totalValue: selectedPortfolio?.name === 'Préstamos' ? parseFloat(newAsset.buyPrice) : parseFloat(newAsset.quantity) * parseFloat(newAsset.buyPrice),
             date: newAsset.date,
             phone: newAsset.phone || '',
             address: newAsset.address || '',
@@ -1018,7 +1018,7 @@ export default function Dashboard({ session }) {
                             <div style={{ overflowX: 'auto' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '900px', fontSize: '0.875rem' }}>
                                     <thead>
-                                        {selectedPortfolioId === 2 ? (
+                                        {selectedPortfolio?.name === 'Préstamos' ? (
                                             <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
                                                 <th style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>Nombre / Cliente</th>
                                                 <th style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>CÃ©dula / ID</th>
@@ -1048,7 +1048,7 @@ export default function Dashboard({ session }) {
                                             const assetPnlPercent = (assetPnlAmount / asset.totalValue) * 100;
                                             const isProfit = assetPnlAmount >= 0;
 
-                                            if (selectedPortfolioId === 2) {
+                                            if (selectedPortfolio?.name === 'Préstamos') {
                                                 return (
                                                     <tr key={asset.id} className="hover-bg" style={{ borderBottom: '1px solid rgba(255,255,255,0.02)', transition: 'background 0.2s' }}>
                                                         <td style={{ padding: '1rem', color: 'var(--accent-gold)' }}>{asset.name}</td>
@@ -1224,7 +1224,7 @@ export default function Dashboard({ session }) {
                 )}
 
                 {/* --- PESTAÃ‘A: DASHBOARD PRÃ‰STAMOS (CUSTOM UI) --- */}
-                {activeTab === 'portfolios' && selectedPortfolioId === 2 && (
+                {activeTab === 'portfolios' && selectedPortfolio?.name === 'Préstamos' && (
                     <div className="animate-slide-up" style={{ paddingBottom: '2rem' }}>
                         {/* Top Cards Row */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
@@ -1788,13 +1788,13 @@ export default function Dashboard({ session }) {
                 {/* Modal: Comprar/Editar AcciÃ³n/Activo */}
                 {isAssetModalOpen && (
                     <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
-                        <div className="glass-panel animate-slide-up" style={{ width: '100%', maxWidth: selectedPortfolioId === 2 ? '650px' : '500px', background: 'var(--bg-surface)' }}>
+                        <div className="glass-panel animate-slide-up" style={{ width: '100%', maxWidth: selectedPortfolio?.name === 'Préstamos' ? '650px' : '500px', background: 'var(--bg-surface)' }}>
                             <h2 style={{ marginBottom: '1.5rem' }}>
                                 {editingAssetId ? 'Editar OperaciÃ³n' : 'Registrar Compra'} - {selectedPortfolio?.name}
                             </h2>
 
                             <form onSubmit={handleSaveAsset} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                {selectedPortfolioId === 2 ? (
+                                {selectedPortfolio?.name === 'Préstamos' ? (
                                     <div style={{ maxHeight: '70vh', overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                         {/* Section 1: Cliente */}
                                         <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)' }}>
