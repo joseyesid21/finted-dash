@@ -20,6 +20,9 @@ const COLORS = ['#8baf88', '#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6'
 
 export default function Dashboard({ session }) {
     const isInitialLoad = useRef(true);
+    const syncTimeoutRef = useRef(null);
+    const isSyncingRef = useRef(false);
+    const lastSyncedRef = useRef("");
     const [activeTab, setActiveTab] = useState('overview');
     const [selectedPortfolioId, setSelectedPortfolioId] = useState(null);
     const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
@@ -139,48 +142,67 @@ export default function Dashboard({ session }) {
         if (isInitialLoad.current || !session?.user?.id) return;
         const userId = session.user.id;
 
-        async function syncToSupabase() {
-            for (const p of portfolios) {
-                await supabase.from('portfolios').update({ initial_capital: p.initialCapital }).eq('id', p.id);
+        // Debounce sync to avoid spamming Supabase and causing race conditions
+        if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
 
-                await supabase.from('assets').delete().eq('portfolio_id', p.id);
-                if (p.assets.length > 0) {
-                    await supabase.from('assets').insert(p.assets.map(a => ({
-                        portfolio_id: p.id, user_id: userId, ticker: a.ticker, name: a.name,
-                        quantity: a.quantity, buy_price: a.buyPrice, total_value: a.totalValue,
-                        date: a.date, phone: a.phone, address: a.address, email: a.email,
-                        interest_rate: a.interestRate, plazo: a.plazo, score: a.score,
-                        riesgo: a.riesgo, tipo_doc: a.tipoDoc
-                    })));
-                }
+        syncTimeoutRef.current = setTimeout(async () => {
+            const currentDataStr = JSON.stringify(portfolios);
+            if (currentDataStr === lastSyncedRef.current || isSyncingRef.current) return;
 
-                await supabase.from('transactions').delete().eq('portfolio_id', p.id);
-                if (p.transactions.length > 0) {
-                    await supabase.from('transactions').insert(p.transactions.map(t => ({
-                        portfolio_id: p.id, user_id: userId, type: t.type, amount: t.amount,
-                        commission: t.commission, date: t.date, comment: t.comment
-                    })));
-                }
+            isSyncingRef.current = true;
+            try {
+                for (const p of portfolios) {
+                    await supabase.from('portfolios').update({ initial_capital: p.initialCapital }).eq('id', p.id);
 
-                await supabase.from('closed_trades').delete().eq('portfolio_id', p.id);
-                if (p.closedTrades.length > 0) {
-                    await supabase.from('closed_trades').insert(p.closedTrades.map(t => ({
-                        portfolio_id: p.id, user_id: userId, asset_id: t.assetId, ticker: t.ticker,
-                        name: t.name, sell_quantity: t.sellQuantity, sell_price: t.sellPrice,
-                        buy_price: t.buyPrice, realized_pnl: t.realizedPnL, date: t.date
-                    })));
-                }
+                    // Sync assets
+                    await supabase.from('assets').delete().eq('portfolio_id', p.id);
+                    if (p.assets.length > 0) {
+                        await supabase.from('assets').insert(p.assets.map(a => ({
+                            portfolio_id: p.id, user_id: userId, ticker: a.ticker, name: a.name,
+                            quantity: a.quantity, buy_price: a.buyPrice, total_value: a.totalValue,
+                            date: a.date, phone: a.phone, address: a.address, email: a.email,
+                            interest_rate: a.interestRate, plazo: a.plazo, score: a.score,
+                            riesgo: a.riesgo, tipo_doc: a.tipoDoc
+                        })));
+                    }
 
-                await supabase.from('buy_history').delete().eq('portfolio_id', p.id);
-                if (p.buyHistory.length > 0) {
-                    await supabase.from('buy_history').insert(p.buyHistory.map(b => ({
-                        portfolio_id: p.id, user_id: userId, ticker: b.ticker, name: b.name,
-                        quantity: b.quantity, buy_price: b.buyPrice, date: b.date
-                    })));
+                    // Sync transactions
+                    await supabase.from('transactions').delete().eq('portfolio_id', p.id);
+                    if (p.transactions.length > 0) {
+                        await supabase.from('transactions').insert(p.transactions.map(t => ({
+                            portfolio_id: p.id, user_id: userId, type: t.type, amount: t.amount,
+                            commission: t.commission, date: t.date, comment: t.comment
+                        })));
+                    }
+
+                    // Sync closed trades
+                    await supabase.from('closed_trades').delete().eq('portfolio_id', p.id);
+                    if (p.closedTrades.length > 0) {
+                        await supabase.from('closed_trades').insert(p.closedTrades.map(t => ({
+                            portfolio_id: p.id, user_id: userId, asset_id: t.assetId, ticker: t.ticker,
+                            name: t.name, sell_quantity: t.sellQuantity, sell_price: t.sellPrice,
+                            buy_price: t.buyPrice, realized_pnl: t.realizedPnL, date: t.date
+                        })));
+                    }
+
+                    // Sync buy history
+                    await supabase.from('buy_history').delete().eq('portfolio_id', p.id);
+                    if (p.buyHistory.length > 0) {
+                        await supabase.from('buy_history').insert(p.buyHistory.map(b => ({
+                            portfolio_id: p.id, user_id: userId, ticker: b.ticker, name: b.name,
+                            quantity: b.quantity, buy_price: b.buyPrice, date: b.date
+                        })));
+                    }
                 }
+                lastSyncedRef.current = currentDataStr;
+            } catch (err) {
+                console.error("Sync error:", err);
+            } finally {
+                isSyncingRef.current = false;
             }
-        }
-        syncToSupabase();
+        }, 1500);
+
+        return () => { if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current); };
     }, [portfolios, session]);
 
     // Global calcs
