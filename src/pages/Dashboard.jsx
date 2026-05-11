@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Bar, Line, CartesianGrid, Legend } from 'recharts';
 import { Home, PieChart as PieChartIcon, TrendingUp, Settings, LogOut, ArrowUpRight, Plus, ChevronLeft, DollarSign, Edit2, Trash2, Activity, RefreshCw, Wallet, BarChart2, Briefcase, Coins, Landmark, Cpu, ArrowDownRight, Clock, Receipt, CheckCircle, MinusCircle, FileText, User } from 'lucide-react';
+import CryptoBotDashboard from '../components/CryptoBotDashboard';
 
 // Mock data for overall dashboard performance
 const globalPerformanceData = [
@@ -891,8 +892,8 @@ export default function Dashboard({ session }) {
                     </div>
                 )}
 
-                {/* --- PESTAÃ‘A: REPORTE DE PORTAFOLIOS (GESTIÃ“N DETALLADA) --- */}
-                {activeTab === 'portfolios' && selectedPortfolioId && selectedPortfolioId !== 2 && (
+                {/* --- PESTAÑA: REPORTE DE PORTAFOLIOS (GESTIÓN DETALLADA) --- */}
+                {activeTab === 'portfolios' && selectedPortfolioId && selectedPortfolio?.name !== 'Préstamos' && selectedPortfolio?.name !== 'Cryptos' && (
                     <div className="animate-slide-up">
                         <div className="flex justify-between items-center" style={{ marginBottom: '2rem' }}>
                             <div className="flex items-center gap-4">
@@ -1418,6 +1419,11 @@ export default function Dashboard({ session }) {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* --- PESTAÑA: DASHBOARD CRYPTOS (BOT COBERTURA) --- */}
+                {activeTab === 'portfolios' && selectedPortfolio?.name === 'Cryptos' && (
+                    <CryptoBotDashboard portfolio={selectedPortfolio} />
                 )}
 
                 {/* Modal: Historial y Movimientos de Efectivo */}
