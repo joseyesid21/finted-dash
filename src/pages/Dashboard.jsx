@@ -79,7 +79,7 @@ export default function Dashboard({ session }) {
         { id: 3, name: 'Cryptos', initialCapital: 0, assets: [], transactions: [], closedTrades: [], buyHistory: [] },
         { id: 4, name: 'Renta Fija', initialCapital: 0, assets: [], transactions: [], closedTrades: [], buyHistory: [] },
         { id: 5, name: 'Trading Manual', initialCapital: 0, assets: [], transactions: [], closedTrades: [], buyHistory: [] },
-        { id: 6, name: 'Trading Algorítmico', initialCapital: 0, assets: [], transactions: [], closedTrades: [], buyHistory: [] },
+        { id: 6, name: 'Trading AlgorÃ­tmico', initialCapital: 0, assets: [], transactions: [], closedTrades: [], buyHistory: [] },
     ]);
 
     const selectedPortfolio = portfolios.find(p => p.id === selectedPortfolioId);
@@ -207,7 +207,7 @@ export default function Dashboard({ session }) {
 
     // Global calcs
     const totalCapital = portfolios.reduce((sum, p) => {
-        const isCop = p.name === 'Pr�stamos';
+        const isCop = p.name === 'Préstamos';
         const netTrans = (p.transactions || []).reduce((s, t) => {
             const amt = parseFloat(t.amount) || 0;
             const com = parseFloat(t.commission) || 0;
@@ -219,7 +219,7 @@ export default function Dashboard({ session }) {
     }, 0);
 
     const allocationData = portfolios.map(p => {
-        const isCop = p.name === 'Pr�stamos';
+        const isCop = p.name === 'Préstamos';
         const netTrans = (p.transactions || []).reduce((s, t) => {
             const amt = parseFloat(t.amount) || 0;
             const com = parseFloat(t.commission) || 0;
@@ -291,7 +291,7 @@ export default function Dashboard({ session }) {
     }, []);
 
     // --- Derived Calculations for Selected Portfolio ---
-    const isCopPortfolio = selectedPortfolio?.name === 'Pr�stamos';
+    const isCopPortfolio = selectedPortfolio?.name === 'Préstamos';
     const netTransactions = selectedPortfolio ? (selectedPortfolio.transactions || []).reduce((s, t) => {
         const amt = parseFloat(t.amount) || 0;
         const com = parseFloat(t.commission) || 0;
@@ -329,7 +329,7 @@ export default function Dashboard({ session }) {
         portfolioDistribution.push({ name: 'Efectivo', value: availableCapital });
     }
 
-    // --- Préstamos Dynamic Chart Data ---
+    // --- PrÃ©stamos Dynamic Chart Data ---
     let loansChartData = [];
     let loansDistributionData = [];
     let loansTotalExpected = 0;
@@ -661,7 +661,7 @@ export default function Dashboard({ session }) {
 
     const handleSaveAsset = (e) => {
         e.preventDefault();
-        if (selectedPortfolio?.name === 'Pr�stamos') {
+        if (selectedPortfolio?.name === 'Préstamos') {
             if (!newAsset.ticker || !newAsset.buyPrice || !newAsset.name || !newAsset.date) {
                 alert('Por favor completa todos los campos obligatorios (*)');
                 return;
@@ -672,11 +672,11 @@ export default function Dashboard({ session }) {
 
         const assetRecord = {
             id: editingAssetId || Date.now(),
-            ticker: selectedPortfolio?.name === 'Pr�stamos' ? newAsset.ticker : newAsset.ticker.toUpperCase(),
-            name: newAsset.name || (selectedPortfolio?.name === 'Pr�stamos' ? newAsset.ticker : newAsset.ticker.toUpperCase()),
-            quantity: selectedPortfolio?.name === 'Pr�stamos' ? 1 : parseFloat(newAsset.quantity),
+            ticker: selectedPortfolio?.name === 'Préstamos' ? newAsset.ticker : newAsset.ticker.toUpperCase(),
+            name: newAsset.name || (selectedPortfolio?.name === 'Préstamos' ? newAsset.ticker : newAsset.ticker.toUpperCase()),
+            quantity: selectedPortfolio?.name === 'Préstamos' ? 1 : parseFloat(newAsset.quantity),
             buyPrice: parseFloat(newAsset.buyPrice),
-            totalValue: selectedPortfolio?.name === 'Pr�stamos' ? parseFloat(newAsset.buyPrice) : parseFloat(newAsset.quantity) * parseFloat(newAsset.buyPrice),
+            totalValue: selectedPortfolio?.name === 'Préstamos' ? parseFloat(newAsset.buyPrice) : parseFloat(newAsset.quantity) * parseFloat(newAsset.buyPrice),
             date: newAsset.date,
             phone: newAsset.phone || '',
             address: newAsset.address || '',
@@ -772,7 +772,7 @@ export default function Dashboard({ session }) {
 
                 <div style={{ marginTop: 'auto' }}>
                     <button onClick={async () => await supabase.auth.signOut()} className="sidebar-link" style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '1rem' }}>
-                        <LogOut size={20} /> Cerrar Sesión
+                        <LogOut size={20} /> Cerrar SesiÃ³n
                     </button>
                 </div>
             </aside>
@@ -782,7 +782,7 @@ export default function Dashboard({ session }) {
                 <header className="flex justify-between items-center" style={{ marginBottom: '2rem' }}>
                     <div>
                         <h1 style={{ fontSize: '1.8rem' }}>Bienvenido, Inversor</h1>
-                        <p>Panel de administración de fondos</p>
+                        <p>Panel de administraciÃ³n de fondos</p>
                     </div>
                     <div className="flex gap-4 items-center">
                         <div style={{ textAlign: 'right' }}>
@@ -801,7 +801,7 @@ export default function Dashboard({ session }) {
 
 
 
-                {/* --- PESTAÑA: RESUMEN GENERAL --- */}
+                {/* --- PESTAÃ‘A: RESUMEN GENERAL --- */}
                 {activeTab === 'overview' && (
                     <div className="animate-fade-in">
                         {/* Stats Grid */}
@@ -809,7 +809,7 @@ export default function Dashboard({ session }) {
                             <div className="glass-panel stat-card">
                                 <div className="stat-label">Capital Total Fondeado</div>
                                 <div className="stat-value">${totalCapital.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                                <div className="trend-up"><ArrowUpRight size={16} /> Base + Depósitos</div>
+                                <div className="trend-up"><ArrowUpRight size={16} /> Base + DepÃ³sitos</div>
                             </div>
                             <div className="glass-panel stat-card">
                                 <div className="stat-label">Rendimiento Proyectado</div>
@@ -819,7 +819,7 @@ export default function Dashboard({ session }) {
                             <div className="glass-panel stat-card">
                                 <div className="stat-label">Portafolios Activos</div>
                                 <div className="stat-value">{portfolios.filter(p => p.initialCapital > 0 || (p.transactions && p.transactions.length > 0)).length} / 6</div>
-                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Nivel de diversificación</div>
+                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Nivel de diversificaciÃ³n</div>
                             </div>
                         </div>
 
@@ -849,7 +849,7 @@ export default function Dashboard({ session }) {
                             </div>
 
                             <div className="glass-panel">
-                                <h3 style={{ marginBottom: '1rem' }}>Distribución de Activos</h3>
+                                <h3 style={{ marginBottom: '1rem' }}>DistribuciÃ³n de Activos</h3>
                                 {totalCapital > 0 ? (
                                     <div className="chart-container" style={{ display: 'flex', alignItems: 'center' }}>
                                         <ResponsiveContainer width="60%" height="100%">
@@ -883,7 +883,7 @@ export default function Dashboard({ session }) {
                                     </div>
                                 ) : (
                                     <div className="flex items-center justify-center h-full text-secondary">
-                                        No hay capital registrado para mostrar la distribución.
+                                        No hay capital registrado para mostrar la distribuciÃ³n.
                                     </div>
                                 )}
                             </div>
@@ -891,7 +891,7 @@ export default function Dashboard({ session }) {
                     </div>
                 )}
 
-                {/* --- PESTAÑA: REPORTE DE PORTAFOLIOS (GESTIÓN DETALLADA) --- */}
+                {/* --- PESTAÃ‘A: REPORTE DE PORTAFOLIOS (GESTIÃ“N DETALLADA) --- */}
                 {activeTab === 'portfolios' && selectedPortfolioId && selectedPortfolioId !== 2 && (
                     <div className="animate-slide-up">
                         <div className="flex justify-between items-center" style={{ marginBottom: '2rem' }}>
@@ -946,11 +946,11 @@ export default function Dashboard({ session }) {
                             </div>
                         </div>
 
-                        {/* Gráficos */}
+                        {/* GrÃ¡ficos */}
                         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-                            {/* Evolución Histórica */}
+                            {/* EvoluciÃ³n HistÃ³rica */}
                             <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                                <h3 style={{ marginBottom: '1.5rem', fontSize: '1rem', fontWeight: 600 }}>Evolución histórica de los activos (Estándar)</h3>
+                                <h3 style={{ marginBottom: '1.5rem', fontSize: '1rem', fontWeight: 600 }}>EvoluciÃ³n histÃ³rica de los activos (EstÃ¡ndar)</h3>
                                 <div style={{ height: '300px' }}>
                                     <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart data={mockPortfolioHistory} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
@@ -969,9 +969,9 @@ export default function Dashboard({ session }) {
                                 </div>
                             </div>
 
-                            {/* Distribución de Activos */}
+                            {/* DistribuciÃ³n de Activos */}
                             <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                                <h3 style={{ marginBottom: '1.5rem', fontSize: '1rem', fontWeight: 600 }}>Distribución de cartera</h3>
+                                <h3 style={{ marginBottom: '1.5rem', fontSize: '1rem', fontWeight: 600 }}>DistribuciÃ³n de cartera</h3>
                                 <div style={{ height: '300px', display: 'flex', flexDirection: 'column' }}>
                                     {portfolioDistribution.length > 0 ? (
                                         <>
@@ -1018,20 +1018,20 @@ export default function Dashboard({ session }) {
                             <div style={{ overflowX: 'auto' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '900px', fontSize: '0.875rem' }}>
                                     <thead>
-                                        {selectedPortfolio?.name === 'Pr�stamos' ? (
+                                        {selectedPortfolio?.name === 'Préstamos' ? (
                                             <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
                                                 <th style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>Nombre / Cliente</th>
-                                                <th style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>Cédula / ID</th>
-                                                <th style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>Teléfono</th>
+                                                <th style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>CÃ©dula / ID</th>
+                                                <th style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>TelÃ©fono</th>
                                                 <th style={{ padding: '0.75rem 1rem', fontWeight: 500, textAlign: 'right' }}>Monto Prestado</th>
-                                                <th style={{ padding: '0.75rem 1rem', fontWeight: 500, textAlign: 'right' }}>Interés Mensual</th>
+                                                <th style={{ padding: '0.75rem 1rem', fontWeight: 500, textAlign: 'right' }}>InterÃ©s Mensual</th>
                                                 <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Acciones</th>
                                             </tr>
                                         ) : (
                                             <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-                                                <th style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>Nº títulos</th>
+                                                <th style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>NÂº tÃ­tulos</th>
                                                 <th style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>Nombre</th>
-                                                <th style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>Símbolo</th>
+                                                <th style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>SÃ­mbolo</th>
                                                 <th style={{ padding: '0.75rem 1rem', fontWeight: 500, textAlign: 'right' }}>Precio Compra</th>
                                                 <th style={{ padding: '0.75rem 1rem', fontWeight: 500, textAlign: 'right' }}>Precio Mercado</th>
                                                 <th style={{ padding: '0.75rem 1rem', fontWeight: 500, textAlign: 'right' }}>Valor Actual</th>
@@ -1048,7 +1048,7 @@ export default function Dashboard({ session }) {
                                             const assetPnlPercent = (assetPnlAmount / asset.totalValue) * 100;
                                             const isProfit = assetPnlAmount >= 0;
 
-                                            if (selectedPortfolio?.name === 'Pr�stamos') {
+                                            if (selectedPortfolio?.name === 'Préstamos') {
                                                 return (
                                                     <tr key={asset.id} className="hover-bg" style={{ borderBottom: '1px solid rgba(255,255,255,0.02)', transition: 'background 0.2s' }}>
                                                         <td style={{ padding: '1rem', color: 'var(--accent-gold)' }}>{asset.name}</td>
@@ -1060,7 +1060,7 @@ export default function Dashboard({ session }) {
                                                         </td>
                                                         <td style={{ padding: '1rem', textAlign: 'right' }}>
                                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.25rem' }}>
-                                                                <button onClick={() => openSellModal(asset)} style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', color: '#10b981', cursor: 'pointer', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, marginRight: '0.25rem' }} title="Liquidar Préstamo">
+                                                                <button onClick={() => openSellModal(asset)} style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', color: '#10b981', cursor: 'pointer', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, marginRight: '0.25rem' }} title="Liquidar PrÃ©stamo">
                                                                     LIQUIDAR
                                                                 </button>
                                                                 <button onClick={() => openEditAssetModal(asset)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.25rem' }} title="Editar">
@@ -1089,7 +1089,7 @@ export default function Dashboard({ session }) {
                                                     </td>
                                                     <td style={{ padding: '1rem', textAlign: 'right', color: isProfit ? '#10b981' : '#ef4444' }}>
                                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                                                            <span style={{ fontWeight: 600 }}>{isProfit ? '▲' : '▼'} ${Math.abs(assetPnlAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                                            <span style={{ fontWeight: 600 }}>{isProfit ? 'â–²' : 'â–¼'} ${Math.abs(assetPnlAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                                             <span style={{ fontSize: '0.75rem' }}>({isProfit ? '+' : ''}{assetPnlPercent.toFixed(2)}%)</span>
                                                         </div>
                                                     </td>
@@ -1178,7 +1178,7 @@ export default function Dashboard({ session }) {
                                 <div className="glass-panel" style={{ width: '100%' }}>
                                     <div style={{ marginBottom: '1.5rem' }}>
                                         <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Historial de Compras</h3>
-                                        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Registro de cada operación de compra realizada.</p>
+                                        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Registro de cada operaciÃ³n de compra realizada.</p>
                                     </div>
                                     <div style={{ overflowX: 'auto' }}>
                                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '500px', fontSize: '0.875rem' }}>
@@ -1223,8 +1223,8 @@ export default function Dashboard({ session }) {
                     </div>
                 )}
 
-                {/* --- PESTAÑA: DASHBOARD PRÉSTAMOS (CUSTOM UI) --- */}
-                {activeTab === 'portfolios' && selectedPortfolio?.name === 'Pr�stamos' && (
+                {/* --- PESTAÃ‘A: DASHBOARD PRÃ‰STAMOS (CUSTOM UI) --- */}
+                {activeTab === 'portfolios' && selectedPortfolio?.name === 'Préstamos' && (
                     <div className="animate-slide-up" style={{ paddingBottom: '2rem' }}>
                         {/* Top Cards Row */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
@@ -1277,7 +1277,7 @@ export default function Dashboard({ session }) {
                         {/* Success Banner */}
                         <div style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '0.5rem', padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                             <CheckCircle size={18} color="#10b981" />
-                            <span>Tus niveles de facturación son saludables y tendrás un saldo neto de <strong>${(availableCapital * 0.05).toLocaleString('es-CO')}</strong> la siguiente semana (Ene-w5).</span>
+                            <span>Tus niveles de facturaciÃ³n son saludables y tendrÃ¡s un saldo neto de <strong>${(availableCapital * 0.05).toLocaleString('es-CO')}</strong> la siguiente semana (Ene-w5).</span>
                         </div>
 
                         {/* Middle Section: Chart & Distribution */}
@@ -1301,9 +1301,9 @@ export default function Dashboard({ session }) {
                             {/* Distribution */}
                             <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
                                 <div className="flex justify-between items-center" style={{ marginBottom: '1.5rem' }}>
-                                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600 }}>Distribución</h3>
+                                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600 }}>DistribuciÃ³n</h3>
                                     <select style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '0.875rem', outline: 'none', cursor: 'pointer' }}>
-                                        <option>Últ. mes</option>
+                                        <option>Ãšlt. mes</option>
                                     </select>
                                 </div>
                                 <div style={{ position: 'relative', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1464,7 +1464,7 @@ export default function Dashboard({ session }) {
                                                 onChange={e => setNewTransaction({ ...newTransaction, type: e.target.value })}
                                                 style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'var(--bg-dark)', color: 'white' }}
                                             >
-                                                <option value="deposit">Depósito</option>
+                                                <option value="deposit">DepÃ³sito</option>
                                                 <option value="withdrawal">Retiro</option>
                                             </select>
                                         </div>
@@ -1531,7 +1531,7 @@ export default function Dashboard({ session }) {
                                     <div className="flex gap-4" style={{ marginTop: '0.5rem' }}>
                                         <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => setIsCashModalOpen(false)}>Cancelar</button>
                                         <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-                                            {editingTransactionId ? 'Guardar Cambios' : (newTransaction.type === 'deposit' ? 'Confirmar Depósito' : 'Confirmar Retiro')}
+                                            {editingTransactionId ? 'Guardar Cambios' : (newTransaction.type === 'deposit' ? 'Confirmar DepÃ³sito' : 'Confirmar Retiro')}
                                         </button>
                                     </div>
                                 </form>
@@ -1544,7 +1544,7 @@ export default function Dashboard({ session }) {
                                         {(!selectedPortfolio?.transactions || selectedPortfolio?.transactions.length === 0) ? (
                                             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
                                                 <Clock size={32} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-                                                <p>No hay depósitos ni retiros registrados aún.</p>
+                                                <p>No hay depÃ³sitos ni retiros registrados aÃºn.</p>
                                             </div>
                                         ) : (
                                             <>
@@ -1560,7 +1560,7 @@ export default function Dashboard({ session }) {
                                                             <th style={{ padding: '0.75rem', fontWeight: 500 }}>Tipo</th>
                                                             <th style={{ padding: '0.75rem', fontWeight: 500 }}>Comentario</th>
                                                             <th style={{ padding: '0.75rem', fontWeight: 500, textAlign: 'right' }}>Monto Bruto</th>
-                                                            <th style={{ padding: '0.75rem', fontWeight: 500, textAlign: 'right' }}>Comisión</th>
+                                                            <th style={{ padding: '0.75rem', fontWeight: 500, textAlign: 'right' }}>ComisiÃ³n</th>
                                                             <th style={{ padding: '0.75rem' }}></th>
                                                         </tr>
                                                     </thead>
@@ -1574,7 +1574,7 @@ export default function Dashboard({ session }) {
                                                                         background: tx.type === 'deposit' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
                                                                         color: tx.type === 'deposit' ? '#10b981' : '#ef4444'
                                                                     }}>
-                                                                        {tx.type === 'deposit' ? 'Depósito' : 'Retiro'}
+                                                                        {tx.type === 'deposit' ? 'DepÃ³sito' : 'Retiro'}
                                                                     </span>
                                                                 </td>
                                                                 <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>{tx.comment || '-'}</td>
@@ -1616,7 +1616,7 @@ export default function Dashboard({ session }) {
                     <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
                         <div className="glass-panel animate-slide-up" style={{ width: '100%', maxWidth: '400px', background: 'var(--bg-surface)' }}>
                             <h2 style={{ marginBottom: '1.5rem', color: '#ef4444' }}>
-                                Vender Posición: {sellAssetData.ticker}
+                                Vender PosiciÃ³n: {sellAssetData.ticker}
                             </h2>
 
                             <form onSubmit={handleSellAsset} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -1639,7 +1639,7 @@ export default function Dashboard({ session }) {
                                 </div>
 
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Fecha de Operación</label>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Fecha de OperaciÃ³n</label>
                                     <input
                                         type="date" required
                                         value={sellAssetData.date} onChange={e => setSellAssetData({ ...sellAssetData, date: e.target.value })}
@@ -1673,7 +1673,7 @@ export default function Dashboard({ session }) {
                     </div>
                 )}
 
-                {/* Modal: Editar Venta (Operación Cerrada) */}
+                {/* Modal: Editar Venta (OperaciÃ³n Cerrada) */}
                 {isEditClosedTradeModalOpen && (
                     <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
                         <div className="glass-panel animate-slide-up" style={{ width: '100%', maxWidth: '400px', background: 'var(--bg-surface)' }}>
@@ -1711,7 +1711,7 @@ export default function Dashboard({ session }) {
                                 </div>
 
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Fecha de Operación</label>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Fecha de OperaciÃ³n</label>
                                     <input
                                         type="date" required
                                         value={editingClosedTradeData.date} onChange={e => setEditingClosedTradeData({ ...editingClosedTradeData, date: e.target.value })}
@@ -1740,7 +1740,7 @@ export default function Dashboard({ session }) {
 
                             <form onSubmit={handleSaveBuyHistoryEdit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Símbolo (Ticker)</label>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>SÃ­mbolo (Ticker)</label>
                                     <input
                                         type="text" required
                                         value={editingBuyHistoryData.ticker} onChange={e => setEditingBuyHistoryData({ ...editingBuyHistoryData, ticker: e.target.value })}
@@ -1766,7 +1766,7 @@ export default function Dashboard({ session }) {
                                     </div>
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Fecha de Operación</label>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Fecha de OperaciÃ³n</label>
                                     <input
                                         type="date" required
                                         value={editingBuyHistoryData.date} onChange={e => setEditingBuyHistoryData({ ...editingBuyHistoryData, date: e.target.value })}
@@ -1785,22 +1785,22 @@ export default function Dashboard({ session }) {
                     </div>
                 )}
 
-                {/* Modal: Comprar/Editar Acción/Activo */}
+                {/* Modal: Comprar/Editar AcciÃ³n/Activo */}
                 {isAssetModalOpen && (
                     <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
-                        <div className="glass-panel animate-slide-up" style={{ width: '100%', maxWidth: selectedPortfolio?.name === 'Pr�stamos' ? '650px' : '500px', background: 'var(--bg-surface)' }}>
+                        <div className="glass-panel animate-slide-up" style={{ width: '100%', maxWidth: selectedPortfolio?.name === 'Préstamos' ? '650px' : '500px', background: 'var(--bg-surface)' }}>
                             <h2 style={{ marginBottom: '1.5rem' }}>
-                                {editingAssetId ? 'Editar Operación' : 'Registrar Compra'} - {selectedPortfolio?.name}
+                                {editingAssetId ? 'Editar OperaciÃ³n' : 'Registrar Compra'} - {selectedPortfolio?.name}
                             </h2>
 
                             <form onSubmit={handleSaveAsset} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                {selectedPortfolio?.name === 'Pr�stamos' ? (
+                                {selectedPortfolio?.name === 'Préstamos' ? (
                                     <div style={{ maxHeight: '70vh', overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                         {/* Section 1: Cliente */}
                                         <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)' }}>
                                             <div className="flex items-center gap-2" style={{ marginBottom: '1rem', color: 'var(--accent-gold)' }}>
                                                 <User size={18} />
-                                                <h3 style={{ fontSize: '1rem', margin: 0 }}>Información del Cliente</h3>
+                                                <h3 style={{ fontSize: '1rem', margin: 0 }}>InformaciÃ³n del Cliente</h3>
                                             </div>
                                             <div className="grid-2" style={{ gap: '1rem', marginBottom: '1rem' }}>
                                                 <div>
@@ -1809,14 +1809,14 @@ export default function Dashboard({ session }) {
                                                         value={newAsset.tipoDoc} onChange={e => setNewAsset({ ...newAsset, tipoDoc: e.target.value })}
                                                         style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'var(--bg-dark)', color: 'white' }}
                                                     >
-                                                        <option value="CC">Cédula de Ciudadanía</option>
-                                                        <option value="CE">Cédula de Extranjería</option>
+                                                        <option value="CC">CÃ©dula de CiudadanÃ­a</option>
+                                                        <option value="CE">CÃ©dula de ExtranjerÃ­a</option>
                                                         <option value="NIT">NIT (Empresa)</option>
                                                         <option value="Pasaporte">Pasaporte</option>
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Número de Documento *</label>
+                                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>NÃºmero de Documento *</label>
                                                     <input
                                                         type="text" required placeholder="Ej. 10234567"
                                                         value={newAsset.ticker} onChange={e => setNewAsset({ ...newAsset, ticker: e.target.value })}
@@ -1825,16 +1825,16 @@ export default function Dashboard({ session }) {
                                                 </div>
                                             </div>
                                             <div style={{ marginBottom: '1rem' }}>
-                                                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Nombre Completo / Razón Social *</label>
+                                                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Nombre Completo / RazÃ³n Social *</label>
                                                 <input
-                                                    type="text" required placeholder="Ej. Juan Pérez"
+                                                    type="text" required placeholder="Ej. Juan PÃ©rez"
                                                     value={newAsset.name} onChange={e => setNewAsset({ ...newAsset, name: e.target.value })}
                                                     style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)', background: 'var(--bg-dark)', color: 'white' }}
                                                 />
                                             </div>
                                             <div className="grid-2" style={{ gap: '1rem' }}>
                                                 <div>
-                                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Teléfono</label>
+                                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>TelÃ©fono</label>
                                                     <input
                                                         type="text" placeholder="Ej. +57 300 000 0000"
                                                         value={newAsset.phone} onChange={e => setNewAsset({ ...newAsset, phone: e.target.value })}
@@ -1842,7 +1842,7 @@ export default function Dashboard({ session }) {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Correo Electrónico</label>
+                                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Correo ElectrÃ³nico</label>
                                                     <input
                                                         type="email" placeholder="cliente@correo.com"
                                                         value={newAsset.email} onChange={e => setNewAsset({ ...newAsset, email: e.target.value })}
@@ -1852,11 +1852,11 @@ export default function Dashboard({ session }) {
                                             </div>
                                         </div>
 
-                                        {/* Section 2: Préstamo */}
+                                        {/* Section 2: PrÃ©stamo */}
                                         <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)' }}>
                                             <div className="flex items-center gap-2" style={{ marginBottom: '1rem', color: 'var(--accent-gold)' }}>
                                                 <FileText size={18} />
-                                                <h3 style={{ fontSize: '1rem', margin: 0 }}>Detalles del Crédito</h3>
+                                                <h3 style={{ fontSize: '1rem', margin: 0 }}>Detalles del CrÃ©dito</h3>
                                             </div>
                                             <div className="grid-2" style={{ gap: '1rem', marginBottom: '1rem' }}>
                                                 <div>
@@ -1868,7 +1868,7 @@ export default function Dashboard({ session }) {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Tasa de Interés Mensual (%)</label>
+                                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Tasa de InterÃ©s Mensual (%)</label>
                                                     <input
                                                         type="number" step="0.01" placeholder="Ej. 2.5"
                                                         value={newAsset.interestRate} onChange={e => setNewAsset({ ...newAsset, interestRate: e.target.value })}
@@ -1878,7 +1878,7 @@ export default function Dashboard({ session }) {
                                             </div>
                                             <div className="grid-2" style={{ gap: '1rem', marginBottom: '1rem' }}>
                                                 <div>
-                                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Número de Cuotas (Meses)</label>
+                                                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>NÃºmero de Cuotas (Meses)</label>
                                                     <input
                                                         type="number" min="1" placeholder="Ej. 12"
                                                         value={newAsset.plazo} onChange={e => setNewAsset({ ...newAsset, plazo: e.target.value })}
@@ -1917,7 +1917,7 @@ export default function Dashboard({ session }) {
                                         <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid var(--border-color)' }}>
                                             <div className="flex items-center gap-2" style={{ marginBottom: '1rem', color: 'var(--accent-gold)' }}>
                                                 <Activity size={18} />
-                                                <h3 style={{ fontSize: '1rem', margin: 0 }}>Evaluación de Riesgo</h3>
+                                                <h3 style={{ fontSize: '1rem', margin: 0 }}>EvaluaciÃ³n de Riesgo</h3>
                                             </div>
                                             <div className="grid-2" style={{ gap: '1rem' }}>
                                                 <div>
@@ -1946,7 +1946,7 @@ export default function Dashboard({ session }) {
                                     <>
                                         <div className="grid-2" style={{ gap: '1rem' }}>
                                             <div>
-                                                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Símbolo (Ticker)</label>
+                                                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>SÃ­mbolo (Ticker)</label>
                                                 <input
                                                     type="text" required placeholder="Ej. AAPL"
                                                     value={newAsset.ticker} onChange={e => setNewAsset({ ...newAsset, ticker: e.target.value.toUpperCase() })}
@@ -1965,7 +1965,7 @@ export default function Dashboard({ session }) {
 
                                         <div className="grid-2" style={{ gap: '1rem' }}>
                                             <div>
-                                                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Nº de títulos (Cantidad)</label>
+                                                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>NÂº de tÃ­tulos (Cantidad)</label>
                                                 <input
                                                     type="number" step="0.0001" required
                                                     value={newAsset.quantity} onChange={e => setNewAsset({ ...newAsset, quantity: e.target.value })}
@@ -1983,7 +1983,7 @@ export default function Dashboard({ session }) {
                                         </div>
 
                                         <div>
-                                            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Fecha de Operación</label>
+                                            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Fecha de OperaciÃ³n</label>
                                             <input
                                                 type="date" required
                                                 value={newAsset.date} onChange={e => setNewAsset({ ...newAsset, date: e.target.value })}
@@ -1993,7 +1993,7 @@ export default function Dashboard({ session }) {
 
                                         {newAsset.quantity && newAsset.buyPrice && (
                                             <div style={{ marginTop: '0.5rem', padding: '1rem', background: 'rgba(139, 175, 136, 0.1)', borderRadius: '0.5rem', border: '1px solid var(--accent-gold)' }}>
-                                                Costo total de la operación: <strong style={{ color: 'var(--accent-gold)' }}>${(parseFloat(newAsset.quantity) * parseFloat(newAsset.buyPrice)).toLocaleString()} USD</strong>
+                                                Costo total de la operaciÃ³n: <strong style={{ color: 'var(--accent-gold)' }}>${(parseFloat(newAsset.quantity) * parseFloat(newAsset.buyPrice)).toLocaleString()} USD</strong>
                                             </div>
                                         )}
                                     </>
