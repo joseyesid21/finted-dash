@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Plus, ChevronLeft, Trash2, Edit2, DollarSign, User, Calendar, Percent, CheckCircle, Search, CreditCard, Receipt } from 'lucide-react';
+import { Plus, ChevronLeft, Trash2, Edit2, DollarSign, User, Calendar, Percent, CheckCircle, Search, CreditCard, Receipt, Wallet, Users } from 'lucide-react';
 
 // Math function to calculate PMT (Sistema de Amortización Francés)
 const calculatePMT = (rate, nper, pv) => {
@@ -10,14 +10,20 @@ const calculatePMT = (rate, nper, pv) => {
 
 export default function LoansDashboard({ session }) {
     const [view, setView] = useState('list');
+    const [listTab, setListTab] = useState('prestamos');
     const [clients, setClients] = useState([]);
     const [loans, setLoans] = useState([]);
     const [selectedLoan, setSelectedLoan] = useState(null);
+    const [selectedClient, setSelectedClient] = useState(null);
     const [payments, setPayments] = useState([]);
     const [detailTab, setDetailTab] = useState('amortizacion');
     const [clientFound, setClientFound] = useState(null);
     const [paymentForm, setPaymentForm] = useState({ monto: '', fecha: new Date().toISOString().split('T')[0], numero_cuota: '' });
     const [editingPayment, setEditingPayment] = useState(null);
+    const [editingLoan, setEditingLoan] = useState(null);
+    const [capitalDeposits, setCapitalDeposits] = useState([]);
+    const [depositForm, setDepositForm] = useState({ fecha: new Date().toISOString().split('T')[0], monto: '', descripcion: '' });
+    const [editingDeposit, setEditingDeposit] = useState(null);
     const [formData, setFormData] = useState({
         cedula: '', nombre: '', telefono: '',
         monto: '', tasa: '', plazo: '', fecha: new Date().toISOString().split('T')[0]
@@ -35,8 +41,10 @@ export default function LoansDashboard({ session }) {
         try {
             const { data: clientsData } = await supabase.from('clients').select('*');
             const { data: loansData } = await supabase.from('loans').select('*, clients(*)');
+            const { data: depositsData } = await supabase.from('capital_deposits').select('*').order('fecha', { ascending: false });
             if (clientsData) setClients(clientsData);
             if (loansData) setLoans(loansData);
+            if (depositsData) setCapitalDeposits(depositsData);
         } catch (error) {
             console.error("Error fetching loans data", error);
         }
@@ -102,47 +110,57 @@ export default function LoansDashboard({ session }) {
         fetchPayments(selectedLoan.id);
     };
 
+    // Capital Deposits CRUD
+    const handleSaveDeposit = async (e) => {
+        e.preventDefault();
+        const payload = { user_id: session.user.id, fecha: depositForm.fecha, monto: parseFloat(depositForm.monto), descripcion: depositForm.descripcion };
+        if (editingDeposit) {
+            await supabase.from('capital_deposits').update(payload).eq('id', editingDeposit.id);
+        } else {
+            await supabase.from('capital_deposits').insert([payload]);
+        }
+        setEditingDeposit(null);
+        setDepositForm({ fecha: new Date().toISOString().split('T')[0], monto: '', descripcion: '' });
+        fetchLoansData();
+    };
+    const handleEditDeposit = (d) => { setEditingDeposit(d); setDepositForm({ fecha: d.fecha, monto: String(d.monto), descripcion: d.descripcion || '' }); };
+    const handleDeleteDeposit = async (id) => { if (!window.confirm('¿Eliminar este depósito?')) return; await supabase.from('capital_deposits').delete().eq('id', id); fetchLoansData(); };
+
+    // Loan Edit
+    const openEditLoan = (loan) => {
+        setEditingLoan(loan);
+        setFormData({ cedula: loan.clients?.cedula || '', nombre: loan.clients?.nombre || '', telefono: loan.clients?.telefono || '', monto: String(loan.monto_prestado), tasa: String(loan.tasa_interes_mensual), plazo: String(loan.plazo_meses), fecha: loan.fecha_desembolso });
+        setClientFound(loan.clients);
+        setView('new_loan');
+    };
+
     const handleCreateLoan = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            // 1. Check or Create Client
             let clientId;
             const existingClient = clients.find(c => c.cedula === formData.cedula);
-            
             if (existingClient) {
                 clientId = existingClient.id;
             } else {
-                const { data: newClient, error: clientErr } = await supabase.from('clients').insert([{
-                    user_id: session.user.id,
-                    cedula: formData.cedula,
-                    nombre: formData.nombre,
-                    telefono: formData.telefono
-                }]).select().single();
-                
+                const { data: newClient, error: clientErr } = await supabase.from('clients').insert([{ user_id: session.user.id, cedula: formData.cedula, nombre: formData.nombre, telefono: formData.telefono }]).select().single();
                 if (clientErr) throw clientErr;
                 clientId = newClient.id;
             }
-
-            // 2. Create Loan
-            const { error: loanErr } = await supabase.from('loans').insert([{
-                user_id: session.user.id,
-                client_id: clientId,
-                monto_prestado: parseFloat(formData.monto),
-                tasa_interes_mensual: parseFloat(formData.tasa),
-                plazo_meses: parseInt(formData.plazo),
-                fecha_desembolso: formData.fecha,
-                estado: 'Activo'
-            }]);
-
-            if (loanErr) throw loanErr;
-
+            const loanPayload = { user_id: session.user.id, client_id: clientId, monto_prestado: parseFloat(formData.monto), tasa_interes_mensual: parseFloat(formData.tasa), plazo_meses: parseInt(formData.plazo), fecha_desembolso: formData.fecha, estado: 'Activo' };
+            if (editingLoan) {
+                await supabase.from('loans').update(loanPayload).eq('id', editingLoan.id);
+            } else {
+                await supabase.from('loans').insert([loanPayload]);
+            }
             await fetchLoansData();
             setView('list');
+            setEditingLoan(null);
+            setClientFound(null);
             setFormData({ cedula: '', nombre: '', telefono: '', monto: '', tasa: '', plazo: '', fecha: new Date().toISOString().split('T')[0] });
         } catch (error) {
             console.error("Error creating loan:", error);
-            alert("Error al crear el préstamo. Asegúrate de haber ejecutado el script SQL en Supabase.");
+            alert("Error al crear/editar el préstamo.");
         }
         setLoading(false);
     };
@@ -152,6 +170,19 @@ export default function LoansDashboard({ session }) {
         await supabase.from('loans').delete().eq('id', loanId);
         await fetchLoansData();
     };
+
+    // Group loans by client
+    const clientsWithLoans = useMemo(() => {
+        const map = {};
+        loans.forEach(l => {
+            const cid = l.client_id;
+            if (!map[cid]) map[cid] = { client: l.clients, loans: [] };
+            map[cid].loans.push(l);
+        });
+        return Object.values(map);
+    }, [loans]);
+
+    const totalCapitalDeposited = useMemo(() => capitalDeposits.reduce((s, d) => s + parseFloat(d.monto || 0), 0), [capitalDeposits]);
 
     // Calculate Amortization Table for UI
     const generateSchedule = () => {
@@ -231,7 +262,7 @@ export default function LoansDashboard({ session }) {
                 )}
                 {view !== 'list' && (
                     <button 
-                        onClick={() => setView('list')}
+                        onClick={() => { setView('list'); setEditingLoan(null); setClientFound(null); setFormData({ cedula: '', nombre: '', telefono: '', monto: '', tasa: '', plazo: '', fecha: new Date().toISOString().split('T')[0] }); }}
                         style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-color)', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', cursor: 'pointer' }}
                     >
                         <ChevronLeft size={18} /> Volver
@@ -239,63 +270,134 @@ export default function LoansDashboard({ session }) {
                 )}
             </div>
 
-            {/* GLOBAL BALANCE CARDS */}
-            {view === 'list' && loans.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
-                    <div className="glass-panel" style={{ padding: '1.25rem', borderTop: '2px solid #10b981' }}>
-                        <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Capital Total Prestado</div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#10b981' }}>{formatCurrency(totalCapitalPrestado)}</div>
+            {view === 'list' && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <div className="glass-panel" style={{ padding: '1rem', borderTop: '2px solid #8b5cf6' }}>
+                        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Capital Depositado</div>
+                        <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#8b5cf6' }}>{formatCurrency(totalCapitalDeposited)}</div>
                     </div>
-                    <div className="glass-panel" style={{ padding: '1.25rem', borderTop: '2px solid #3b82f6' }}>
-                        <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Total a Recuperar (Capital + Interés)</div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#3b82f6' }}>{formatCurrency(totalCapitalPrestado + totalInteresesProyectados)}</div>
+                    <div className="glass-panel" style={{ padding: '1rem', borderTop: '2px solid #10b981' }}>
+                        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Capital Prestado</div>
+                        <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#10b981' }}>{formatCurrency(totalCapitalPrestado)}</div>
                     </div>
-                    <div className="glass-panel" style={{ padding: '1.25rem', borderTop: '2px solid #f59e0b' }}>
-                        <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Ganancia Proyectada (Intereses)</div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f59e0b' }}>{formatCurrency(totalInteresesProyectados)}</div>
+                    <div className="glass-panel" style={{ padding: '1rem', borderTop: '2px solid #3b82f6' }}>
+                        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Disponible</div>
+                        <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#3b82f6' }}>{formatCurrency(totalCapitalDeposited - totalCapitalPrestado)}</div>
+                    </div>
+                    <div className="glass-panel" style={{ padding: '1rem', borderTop: '2px solid #f59e0b' }}>
+                        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Ganancia Proyectada</div>
+                        <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#f59e0b' }}>{formatCurrency(totalInteresesProyectados)}</div>
                     </div>
                 </div>
             )}
 
-            {/* LIST VIEW */}
+            {/* LIST TABS */}
             {view === 'list' && (
-                <div className="glass-panel" style={{ padding: '0' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', textAlign: 'left' }}>
-                                <th style={{ padding: '1rem' }}>Cliente</th>
-                                <th style={{ padding: '1rem' }}>Cédula</th>
-                                <th style={{ padding: '1rem' }}>Monto Crédito</th>
-                                <th style={{ padding: '1rem' }}>Tasa</th>
-                                <th style={{ padding: '1rem' }}>Plazo</th>
-                                <th style={{ padding: '1rem', textAlign: 'right' }}>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loans.length === 0 ? (
-                                <tr><td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No hay préstamos registrados.</td></tr>
-                            ) : loans.map(loan => (
-                                <tr key={loan.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <td style={{ padding: '1rem', fontWeight: 'bold' }}>{loan.clients?.nombre}</td>
-                                    <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{loan.clients?.cedula}</td>
-                                    <td style={{ padding: '1rem', color: '#10b981' }}>{formatCurrency(loan.monto_prestado)}</td>
-                                    <td style={{ padding: '1rem' }}>{loan.tasa_interes_mensual}%</td>
-                                    <td style={{ padding: '1rem' }}>{loan.plazo_meses} meses</td>
-                                    <td style={{ padding: '1rem', textAlign: 'right' }}>
-                                        <button onClick={() => viewLoanDetails(loan)} style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', marginRight: '0.5rem' }}>Ver Tabla</button>
-                                        <button onClick={() => handleDeleteLoan(loan.id)} style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: 'none', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer' }}><Trash2 size={16}/></button>
-                                    </td>
-                                </tr>
+                <div>
+                    <div style={{ display: 'flex', gap: '0', borderBottom: '1px solid var(--border-color)', marginBottom: '1.5rem' }}>
+                        <button onClick={() => setListTab('prestamos')} style={{ display:'flex',alignItems:'center',gap:'0.5rem', background:'none',border:'none',padding:'0.75rem 1.5rem',cursor:'pointer',fontSize:'0.875rem',fontWeight:600, color: listTab==='prestamos' ? 'var(--accent-gold)' : 'var(--text-secondary)', borderBottom: listTab==='prestamos' ? '2px solid var(--accent-gold)' : '2px solid transparent' }}><Users size={14}/> Préstamos por Cliente</button>
+                        <button onClick={() => setListTab('capital')} style={{ display:'flex',alignItems:'center',gap:'0.5rem', background:'none',border:'none',padding:'0.75rem 1.5rem',cursor:'pointer',fontSize:'0.875rem',fontWeight:600, color: listTab==='capital' ? 'var(--accent-gold)' : 'var(--text-secondary)', borderBottom: listTab==='capital' ? '2px solid var(--accent-gold)' : '2px solid transparent' }}><Wallet size={14}/> Depósitos de Capital</button>
+                    </div>
+
+                    {/* TAB: Préstamos agrupados por cliente */}
+                    {listTab === 'prestamos' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            {clientsWithLoans.length === 0 ? (
+                                <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No hay préstamos registrados.</div>
+                            ) : clientsWithLoans.map(({ client, loans: cLoans }) => (
+                                <div key={client?.id} className="glass-panel" style={{ padding: '0', overflow: 'hidden' }}>
+                                    <div style={{ padding: '1rem 1.5rem', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(139,175,136,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#8baf88' }}>{client?.nombre?.charAt(0)}</div>
+                                            <div><div style={{ fontWeight: 700 }}>{client?.nombre}</div><div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>CC: {client?.cedula} • Tel: {client?.telefono}</div></div>
+                                        </div>
+                                        <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{cLoans.length} préstamo{cLoans.length > 1 ? 's' : ''}</div>
+                                    </div>
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                                        <thead><tr style={{ color: 'var(--text-secondary)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                            <th style={{ padding: '0.6rem 1rem', textAlign: 'left' }}>Monto</th>
+                                            <th style={{ padding: '0.6rem 1rem', textAlign: 'left' }}>Tasa</th>
+                                            <th style={{ padding: '0.6rem 1rem', textAlign: 'left' }}>Plazo</th>
+                                            <th style={{ padding: '0.6rem 1rem', textAlign: 'left' }}>Cuota Fija</th>
+                                            <th style={{ padding: '0.6rem 1rem', textAlign: 'left' }}>Fecha</th>
+                                            <th style={{ padding: '0.6rem 1rem', textAlign: 'right' }}>Acciones</th>
+                                        </tr></thead>
+                                        <tbody>{cLoans.map(loan => (
+                                            <tr key={loan.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                                                <td style={{ padding: '0.6rem 1rem', color: '#10b981', fontWeight: 600 }}>{formatCurrency(loan.monto_prestado)}</td>
+                                                <td style={{ padding: '0.6rem 1rem' }}>{loan.tasa_interes_mensual}%</td>
+                                                <td style={{ padding: '0.6rem 1rem' }}>{loan.plazo_meses}m</td>
+                                                <td style={{ padding: '0.6rem 1rem', color: '#f59e0b' }}>{formatCurrency(calculatePMT(loan.tasa_interes_mensual/100, loan.plazo_meses, loan.monto_prestado))}</td>
+                                                <td style={{ padding: '0.6rem 1rem', color: 'var(--text-secondary)' }}>{loan.fecha_desembolso}</td>
+                                                <td style={{ padding: '0.6rem 1rem', textAlign: 'right' }}>
+                                                    <button onClick={() => viewLoanDetails(loan)} style={{ background: 'rgba(59,130,246,0.15)', color: '#3b82f6', border: 'none', padding: '0.35rem 0.75rem', borderRadius: '4px', cursor: 'pointer', marginRight: '0.25rem', fontSize: '0.75rem' }}>Ver</button>
+                                                    <button onClick={() => openEditLoan(loan)} style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: 'none', padding: '0.35rem', borderRadius: '4px', cursor: 'pointer', marginRight: '0.25rem' }}><Edit2 size={13}/></button>
+                                                    <button onClick={() => handleDeleteLoan(loan.id)} style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'none', padding: '0.35rem', borderRadius: '4px', cursor: 'pointer' }}><Trash2 size={13}/></button>
+                                                </td>
+                                            </tr>
+                                        ))}</tbody>
+                                    </table>
+                                </div>
                             ))}
-                        </tbody>
-                    </table>
+                        </div>
+                    )}
+
+                    {/* TAB: Depósitos de Capital */}
+                    {listTab === 'capital' && (
+                        <div>
+                            <div className="glass-panel" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
+                                <h4 style={{ marginBottom: '1rem', color: 'var(--accent-gold)' }}>{editingDeposit ? 'Editar Depósito' : 'Registrar Depósito de Capital'}</h4>
+                                <form onSubmit={handleSaveDeposit} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                                    <div style={{ flex: 1, minWidth: '140px' }}>
+                                        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Fecha</label>
+                                        <input type="date" required value={depositForm.fecha} onChange={e => setDepositForm({...depositForm, fecha: e.target.value})} style={{ width: '100%', padding: '0.6rem', background: 'var(--bg-dark)', border: '1px solid var(--border-color)', color: 'white', borderRadius: '0.375rem' }}/>
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: '140px' }}>
+                                        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Monto</label>
+                                        <input type="number" step="0.01" required value={depositForm.monto} onChange={e => setDepositForm({...depositForm, monto: e.target.value})} style={{ width: '100%', padding: '0.6rem', background: 'var(--bg-dark)', border: '1px solid var(--border-color)', color: 'white', borderRadius: '0.375rem' }}/>
+                                    </div>
+                                    <div style={{ flex: 2, minWidth: '200px' }}>
+                                        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Descripción</label>
+                                        <input type="text" value={depositForm.descripcion} onChange={e => setDepositForm({...depositForm, descripcion: e.target.value})} placeholder="Ej: Fondeo inicial" style={{ width: '100%', padding: '0.6rem', background: 'var(--bg-dark)', border: '1px solid var(--border-color)', color: 'white', borderRadius: '0.375rem' }}/>
+                                    </div>
+                                    <button type="submit" style={{ padding: '0.6rem 1.5rem', background: 'var(--accent-gold)', color: '#000', border: 'none', borderRadius: '0.375rem', fontWeight: 700, cursor: 'pointer' }}>{editingDeposit ? 'Actualizar' : 'Guardar'}</button>
+                                    {editingDeposit && <button type="button" onClick={() => { setEditingDeposit(null); setDepositForm({ fecha: new Date().toISOString().split('T')[0], monto: '', descripcion: '' }); }} style={{ padding: '0.6rem 1rem', background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', borderRadius: '0.375rem', cursor: 'pointer' }}>Cancelar</button>}
+                                </form>
+                            </div>
+                            <div className="glass-panel" style={{ padding: '0' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                                    <thead><tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)' }}>
+                                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left' }}>Fecha</th>
+                                        <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Monto</th>
+                                        <th style={{ padding: '0.75rem 1rem', textAlign: 'left' }}>Descripción</th>
+                                        <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Acciones</th>
+                                    </tr></thead>
+                                    <tbody>
+                                        {capitalDeposits.length === 0 ? (
+                                            <tr><td colSpan="4" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>No hay depósitos de capital registrados.</td></tr>
+                                        ) : capitalDeposits.map(d => (
+                                            <tr key={d.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                                <td style={{ padding: '0.75rem 1rem' }}>{d.fecha}</td>
+                                                <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: '#8b5cf6', fontWeight: 600 }}>{formatCurrency(d.monto)}</td>
+                                                <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)' }}>{d.descripcion || '—'}</td>
+                                                <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
+                                                    <button onClick={() => handleEditDeposit(d)} style={{ background: 'rgba(59,130,246,0.15)', color: '#3b82f6', border: 'none', padding: '0.35rem 0.6rem', borderRadius: '4px', cursor: 'pointer', marginRight: '0.5rem' }}><Edit2 size={14}/></button>
+                                                    <button onClick={() => handleDeleteDeposit(d.id)} style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'none', padding: '0.35rem 0.6rem', borderRadius: '4px', cursor: 'pointer' }}><Trash2 size={14}/></button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
             {/* NEW LOAN VIEW */}
             {view === 'new_loan' && (
                 <div className="glass-panel" style={{ maxWidth: '600px', margin: '0 auto', padding: '2rem' }}>
-                    <h3 style={{ marginBottom: '1.5rem', color: 'var(--accent-gold)' }}>Registrar Nuevo Crédito</h3>
+                    <h3 style={{ marginBottom: '1.5rem', color: 'var(--accent-gold)' }}>{editingLoan ? 'Editar Préstamo' : 'Registrar Nuevo Crédito'}</h3>
                     <form onSubmit={handleCreateLoan} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <div className="grid-2">
                             <div>
